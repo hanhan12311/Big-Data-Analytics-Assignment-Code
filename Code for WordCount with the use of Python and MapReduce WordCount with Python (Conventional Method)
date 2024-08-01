@@ -1,0 +1,77 @@
+# Python word count
+# Import Pandas
+import pandas as pd
+
+# File path for the CSV file
+file_path = r"C:\Users\lenovo\OneDrive\Desktop\test.xlsx"
+
+# Read the CSV file
+df = pd.read_csv(file_path)
+
+# Initialize word and number count variables
+total_word_count = 0
+total_number_count = 0
+
+# Iterate through the columns and rows
+for column in df.columns:
+    for value in df[column]:
+        if pd.notnull(value):  # Check if the value is not NaN
+            value_str = str(value)
+            if df[column].dtype == object:  # Check if the column contains text data
+                total_word_count += len(value_str.split())
+            else:
+                total_number_count += 1
+
+print(f'Total word count: {total_word_count}')
+print(f'Total number count: {total_number_count}')
+
+======================================================================================================
+#Python wordcount with MapReduce
+
+import pandas as pd
+import re
+from functools import reduce
+import string
+
+# File path for the CSV file
+file_path = "C:\\Users\\lenovo\\OneDrive\\Desktop\\Books_rating.csv"
+
+# Read the CSV file
+df = pd.read_csv(file_path)
+
+# Define a function for the Map step
+def mapper(text):
+    # Initialize counters
+    word_count = 0
+    number_count = 0
+    symbol_count = 0
+    
+    # Tokenize text and count words, numbers, and symbols
+    for token in re.findall(r'\w+|[^\w\s]', text):
+        if token.isdigit():
+            number_count += 1
+        elif token in string.punctuation:
+            symbol_count += 1
+        else:
+            word_count += 1
+
+    return (word_count, number_count, symbol_count)
+
+# Define a function for the Reduce step
+def reducer(accum, value):
+    return (accum[0] + value[0], accum[1] + value[1], accum[2] + value[2])
+
+# Apply the Map step to each cell in the DataFrame
+mapped_values = df.applymap(lambda x: mapper(str(x)))
+
+# Flatten the list of mapped values
+flattened_values = mapped_values.values.flatten()
+
+# Apply the Reduce step to combine the counts
+total_counts = reduce(reducer, flattened_values)
+
+# Display the total counts
+total_word_count, total_number_count, total_symbol_count = total_counts
+print(f"Total words: {total_word_count}")
+print(f"Total numbers: {total_number_count}")
+print(f"Total symbols: {total_symbol_count}")
