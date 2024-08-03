@@ -1,77 +1,109 @@
-# Python word count
-# Import Pandas
-import pandas as pd
-
-# File path for the CSV file
-file_path = r"C:\Users\lenovo\OneDrive\Desktop\test.xlsx"
-
-# Read the CSV file
-df = pd.read_csv(file_path)
-
-# Initialize word and number count variables
-total_word_count = 0
-total_number_count = 0
-
-# Iterate through the columns and rows
-for column in df.columns:
-    for value in df[column]:
-        if pd.notnull(value):  # Check if the value is not NaN
-            value_str = str(value)
-            if df[column].dtype == object:  # Check if the column contains text data
-                total_word_count += len(value_str.split())
-            else:
-                total_number_count += 1
-
-print(f'Total word count: {total_word_count}')
-print(f'Total number count: {total_number_count}')
-
-======================================================================================================
-#Python wordcount with MapReduce
-
+#Total Word count
 import pandas as pd
 import re
-from functools import reduce
 import string
+from collections import defaultdict
 
 # File path for the CSV file
 file_path = "C:\\Users\\lenovo\\OneDrive\\Desktop\\Books_rating.csv"
 
-# Read the CSV file
+# Read the CSV file into a DataFrame
+df = pd.read_csv(file_path, encoding='utf-8')
+
+# Define a function to count words, numbers, and symbols
+def count_elements(text):
+    elements = defaultdict(int)
+
+    # Regular expression to split text into words, numbers, and symbols
+    tokens = re.findall(r'\w+|[^\w\s]', text)
+
+    # Count words, numbers, and symbols
+    for token in tokens:
+        if token.isdigit():
+            elements['numbers'] += 1
+        elif token in string.punctuation:
+            elements['symbols'] += 1
+        else:
+            elements['words'] += 1
+
+    return elements
+
+# Initialize counters
+total_elements = defaultdict(int)
+
+# Process each cell in the DataFrame
+for column in df.columns:
+    df[column] = df[column].astype(str)  # Convert all elements to strings
+    df_elements = df[column].apply(count_elements)  # Apply the count_elements function
+    for count_dict in df_elements:
+        for key, value in count_dict.items():
+            total_elements[key] += value
+
+# Print the total counts
+print(f"Total words: {total_elements['words']}")
+print(f"Total numbers: {total_elements['numbers']}")
+print(f"Total symbols: {total_elements['symbols']}")
+
+================================================================================================================
+
+# File path for the original CSV file
+file_path = r"C:\Users\lenovo\OneDrive\Desktop\Books_rating.csv"
+
+# Read the CSV file into a DataFrame
 df = pd.read_csv(file_path)
 
-# Define a function for the Map step
-def mapper(text):
-    # Initialize counters
-    word_count = 0
-    number_count = 0
-    symbol_count = 0
-    
-    # Tokenize text and count words, numbers, and symbols
-    for token in re.findall(r'\w+|[^\w\s]', text):
-        if token.isdigit():
-            number_count += 1
-        elif token in string.punctuation:
-            symbol_count += 1
-        else:
-            word_count += 1
+# Extract the first 300 thousand million rows
+df_first_1_5_million = df.head(300000)
 
-    return (word_count, number_count, symbol_count)
+# File path for the new CSV file
+new_file_path = r"C:\Users\lenovo\OneDrive\Desktop\Books_rating_first_3_hundred_thousand.csv"
 
-# Define a function for the Reduce step
-def reducer(accum, value):
-    return (accum[0] + value[0], accum[1] + value[1], accum[2] + value[2])
+# Save the extracted data to a new CSV file
+df_first_1_5_million.to_csv(new_file_path, index=False)
 
-# Apply the Map step to each cell in the DataFrame
-mapped_values = df.applymap(lambda x: mapper(str(x)))
+print(f"Extracted the first 300 thousand rows and saved to {new_file_path}")
 
-# Flatten the list of mapped values
-flattened_values = mapped_values.values.flatten()
 
-# Apply the Reduce step to combine the counts
-total_counts = reduce(reducer, flattened_values)
+# Start counting specific word, symbols, and number
+# File path for the extracted CSV file
+file_path = r"C:\Users\lenovo\OneDrive\Desktop\Books_rating_first_3_hundred_thousand.csv"
 
-# Display the total counts
-total_word_count, total_number_count, total_symbol_count = total_counts
-print(f"Total words: {total_word_count}")
-print(f"Total numbers: {total_number_count}")
-print(f"Total symbols: {total_symbol_count}")
+# Read the extracted CSV file into a DataFrame
+df = pd.read_csv(file_path)
+
+# Define a function to count words, numbers, and symbols
+def count_elements(text):
+    words = re.findall(r'\w+', text.lower())  # Extract words and convert to lower case
+    numbers = re.findall(r'\b\d+\b', text)    # Extract numbers
+    symbols = re.findall(r'[^\w\s]', text)    # Extract symbols (non-word, non-space characters)
+    return words, numbers, symbols
+
+# Initialize dictionaries to count each element
+word_counts = defaultdict(int)
+number_counts = defaultdict(int)
+symbol_counts = defaultdict(int)
+
+# Process each cell in the DataFrame
+for column in df:
+    df[column] = df[column].astype(str)  # Convert all elements to strings
+    df_elements = df[column].apply(count_elements)  # Apply the count_elements function
+    for word_list, number_list, symbol_list in df_elements:
+        for word in word_list:
+            word_counts[word] += 1
+        for number in number_list:
+            number_counts[number] += 1
+        for symbol in symbol_list:
+            symbol_counts[symbol] += 1
+
+# Convert the counts to DataFrames for better visualization
+word_counts_df = pd.DataFrame(list(word_counts.items()), columns=['Word', 'Count']).sort_values(by='Count', ascending=False)
+number_counts_df = pd.DataFrame(list(number_counts.items()), columns=['Number', 'Count']).sort_values(by='Count', ascending=False)
+symbol_counts_df = pd.DataFrame(list(symbol_counts.items()), columns=['Symbol', 'Count']).sort_values(by='Count', ascending=False)
+
+# Save the counts to new CSV files without the index
+word_counts_df.to_csv(r"C:\Users\lenovo\OneDrive\Desktop\word_counts_first_3_hundred_thousand.csv", index=False)
+number_counts_df.to_csv(r"C:\Users\lenovo\OneDrive\Desktop\number_counts_first_3_hundred_thousand.csv", index=False)
+symbol_counts_df.to_csv(r"C:\Users\lenovo\OneDrive\Desktop\symbol_counts_first_3_hundred_thousand.csv", index=False)
+
+# Display the top elements
+word_counts_df.head(), number_counts_df.head(), symbol_counts_df.head()
