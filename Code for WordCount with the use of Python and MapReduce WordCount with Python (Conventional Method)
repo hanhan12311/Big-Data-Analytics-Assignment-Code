@@ -5,7 +5,7 @@ import string
 from collections import defaultdict
 
 # File path for the CSV file
-file_path = "C:\\Users\\lenovo\\OneDrive\\Desktop\\Books_rating.csv"
+file_path = r"C:\Users\lenovo\OneDrive\Desktop\Books_rating.csv"
 
 # Read the CSV file into a DataFrame
 df = pd.read_csv(file_path, encoding='utf-8')
@@ -43,6 +43,13 @@ for column in df.columns:
 print(f"Total words: {total_elements['words']}")
 print(f"Total numbers: {total_elements['numbers']}")
 print(f"Total symbols: {total_elements['symbols']}")
+
+# Display the results in the prompt
+total_words = total_elements['words']
+total_numbers = total_elements['numbers']
+total_symbols = total_elements['symbols']
+
+total_words, total_numbers, total_symbols
 
 ================================================================================================================
 
