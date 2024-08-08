@@ -49,4 +49,7 @@
 
 # The different subsets of the dataset ranging from 200000 rows, 1.5 million rows and the whole dataset which consists of 3 million rows all was done through the same method which was explained in the steps above.
 
-
+16) hdfs dfs -get /user/hadoop/wordcounts121 wordcounts121
+17) sort -k2,2nr wordcounts121 -o sorted_wordcounts121
+18) cat sorted_wordcounts121
+# These 3 lines of code were used to retrieve the wordcount output from the HDFS and to sort it in order to have a sorted output for the wordcount.
