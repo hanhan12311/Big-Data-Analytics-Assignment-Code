@@ -1,4 +1,4 @@
-# Hadoop MapReduce Code for WordCount With Java
+# Hadoop MapReduce Code for WordCount With Java. The .java files were obtained from the IST3134 lab materials specifically lab 4.
 
 # Each of the lines below are the command lines that were used for us to perform our MapReduce job using Java.
 
